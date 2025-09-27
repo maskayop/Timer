@@ -1,12 +1,22 @@
-using UnityEngine;
+using System;
 using TMPro;
+using UnityEngine;
 
-public class UIDateAndTimeText : MonoBehaviour
+namespace Vopere
 {
-    [SerializeField] TextMeshProUGUI text;
-
-    public void Init(string INtext)
+    public class UIDateAndTimeText : MonoBehaviour
     {
-        text.text = INtext;
+        [SerializeField] TextMeshProUGUI dateText;
+        [SerializeField] TextMeshProUGUI timeText;
+        [SerializeField] TextMeshProUGUI projectText;
+
+        public void Init(string INdateText, string INtimeText)
+        {
+            string[] words = INdateText.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+            dateText.text = words[0];
+            projectText.text = words[1];
+
+            timeText.text = INtimeText;
+        }
     }
 }
