@@ -9,6 +9,8 @@ namespace Vopere
 {
     public class Timer : MonoBehaviour
     {
+        public static Timer Instance { get; private set; }
+
         [Header("Main")]
         [SerializeField] TextMeshProUGUI dayText;
         [SerializeField] TextMeshProUGUI timerText;
@@ -17,6 +19,16 @@ namespace Vopere
         [SerializeField] TMP_Dropdown dropdown;
         [SerializeField] TMP_InputField projectCreationInputField;
         [SerializeField] Button projectCreationButton;
+
+        [Header("Colors")]
+        [SerializeField] Image colorIndicator;
+        [SerializeField] GameObject colorSchemeButtonPrefab;
+        [SerializeField] GameObject colorsPanel;
+
+        public List<Color> colors = new List<Color>();
+
+        bool colorsPanelIsOpen = false;
+        public int currentColorSchemeId;
 
         [Header("List")]
         [SerializeField] GameObject dateAndTimeTextsContainer;
@@ -31,6 +43,18 @@ namespace Vopere
         public string currentProject;
         public List<string> savedProjects = new List<string>();
 
+        void Awake()
+        {
+            if (Instance != null)
+            {
+                Debug.LogWarning("Cannot create Timer");
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+        }
+
         void Start()
         {
             dataSaver = DataSaveLoad.Instance;
@@ -42,11 +66,17 @@ namespace Vopere
 
             CreateDropdownProjectsTexts();
             CreateDateAndTimeTexts();
+            CreateColorSchemeButtons();
+
+            colorsPanelIsOpen = colorsPanel.activeInHierarchy;
+
+            ActivateColorsPanel();
         }
 
         void Update()
         {
-            currentProject = dropdown.options[dropdown.value].text;
+            if(dropdown.options.Count > 0)
+                currentProject = dropdown.options[dropdown.value].text;
 
             if (!isWorking)
                 return;
@@ -98,11 +128,11 @@ namespace Vopere
 
         public void CreateDateAndTimeTexts()
         {
-            for (int y = 2025; y < 2125; y++)
+            for (int y = 2125; y >= 2025; y--)
             {
-                for (int m = 0; m < 12; m++)
+                for (int m = 12; m >= 1; m--)
                 {
-                    for (int d = 0; d < 31; d++)
+                    for (int d = 31; d >= 1; d--)
                     {
                         for (int p = 0; p < savedProjects.Count; p++)
                         {
@@ -183,8 +213,46 @@ namespace Vopere
             else
                 totalSeconds = 0;
 
+            if (PlayerPrefs.HasKey(currentProject + "_ColorScheme"))
+            {
+                currentColorSchemeId = dataSaver.GetSavedInt(currentProject + "_ColorScheme");
+                colorIndicator.color = colors[currentColorSchemeId];
+            }
+            else
+                colorIndicator.color = Color.white;
+
             dayText.text = FormatDay();
             timerText.text = FormatTime(totalSeconds);
+        }
+
+        void CreateColorSchemeButtons()
+        {
+            foreach (Transform t in colorsPanel.transform)
+                Destroy(t.gameObject);
+
+            for (int i = 0; i < colors.Count; i++)
+            {
+                GameObject go = Instantiate(colorSchemeButtonPrefab, colorsPanel.transform);
+                go.GetComponent<UIColorSchemeButton>().Init(colors[i]);
+            }
+        }
+
+        public void ActivateColorsPanel()
+        {
+            colorsPanel.SetActive(!colorsPanelIsOpen);
+            colorsPanelIsOpen = !colorsPanelIsOpen;
+        }
+
+        public void SetCurrentProjectColor(Color INcolor)
+        {
+            for (int i = 0; i < colors.Count; i++)
+            {
+                if (colors[i] == INcolor)
+                    currentColorSchemeId = i;
+            }
+
+            colorIndicator.color = colors[currentColorSchemeId];
+            dataSaver.Save(currentProject + "_ColorScheme", currentColorSchemeId);
         }
     }
 }
