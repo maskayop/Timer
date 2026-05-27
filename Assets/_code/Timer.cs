@@ -39,6 +39,9 @@ namespace Vopere
 
         DataSaveLoad dataSaver;
 
+        [Header("Version")]
+        [SerializeField] TextMeshProUGUI versionText;
+
         [Header("Info")]
         public string currentProject;
         public List<string> savedProjects = new List<string>();
@@ -71,11 +74,13 @@ namespace Vopere
             colorsPanelIsOpen = colorsPanel.activeInHierarchy;
 
             ActivateColorsPanel();
+
+            versionText.text = Application.version;
         }
 
         void Update()
         {
-            if(dropdown.options.Count > 0)
+            if (dropdown.options.Count > 0)
                 currentProject = dropdown.options[dropdown.value].text;
 
             if (!isWorking)
